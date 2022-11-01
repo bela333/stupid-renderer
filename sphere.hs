@@ -29,11 +29,15 @@ sphereIntersect :: Vec -> Vec -> Sphere -> Maybe I.Intersection
 sphereIntersect ro rd Sphere{origin=origin, radius=radius, Sphere.color=color} = maybeDistance >>= \distance -> Just I.Intersection{I.color=color, I.pos=hit distance, I.normal=calcNormal origin (hit distance)}
     where
         hit distance = vecAdd ro $ vecMultiply rd distance
+
         calcNormal :: Vec -> Vec -> Vec
         calcNormal origin hit = vecNormalise $ vecSubtract hit origin
-        qa = vecLengthSquared rd
-        qb = 2*(vecDot rd ro - vecDot origin rd)
-        qc = vecLengthSquared (vecSubtract origin ro) - radius*radius
+
+        qa = 1 -- ray direction is always normalised
+        qb = 2*(vecDot rd roOrigin)
+        qc = vecLengthSquared roOrigin - radius*radius
+        roOrigin = vecSubtract ro origin
+
         maybeDistance = quadratic qa qb qc >>= firstIntersection
         firstIntersection :: (Double, Double) -> Maybe Double
         firstIntersection (a, b)

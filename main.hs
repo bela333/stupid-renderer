@@ -7,7 +7,8 @@ import qualified Intersectable as I
 
 data Conf = Conf{
     width :: Integer,
-    height :: Integer
+    height :: Integer,
+    light :: Vec
 }
 
 targaHeader :: Conf -> B.ByteString
@@ -28,22 +29,20 @@ mySphere = S.Sphere{
     color=Vec 1 1 1
 }
 
-light = Vec 1 1 0
-
-phongLighting :: Vec -> Vec -> Double
-phongLighting hit normal = (max 0 (vecDot toLight normal)) + 0.01
+phongLighting :: Vec -> Vec -> Vec -> Double
+phongLighting light hit normal = (max 0 (vecDot toLight normal)) + 0.01
     where toLight = vecNormalise (vecSubtract light hit)
 
-renderRay :: Vec -> Vec
-renderRay rd = fromMaybe (Vec 0 0 0) (intersection >>= return . colorIntersection)
+renderRay :: Conf -> Vec -> Vec
+renderRay Conf{light=light} rd = fromMaybe (Vec 0 0 0) (intersection >>= return . colorIntersection)
     where 
         colorIntersection :: I.Intersection -> Vec
-        colorIntersection I.Intersection{I.color=color, I.normal=normal, I.pos=hit} = vecMultiply color (phongLighting hit normal)
+        colorIntersection I.Intersection{I.color=color, I.normal=normal, I.pos=hit} = vecMultiply color (phongLighting light hit normal)
         intersection = I.intersect (Vec 0 0 0) rd mySphere
 
 
 renderTexel :: Conf -> Integer -> Integer -> Vec
-renderTexel Conf{width=width, height=height} x y = renderMapped (fromIntegral x / widthF) (fromIntegral y / heightF)
+renderTexel conf@Conf{width=width, height=height} x y = renderMapped (fromIntegral x / widthF) (fromIntegral y / heightF)
     where
         widthF :: Double
         heightF :: Double
@@ -52,7 +51,7 @@ renderTexel Conf{width=width, height=height} x y = renderMapped (fromIntegral x 
         aspect = widthF/heightF
 
         renderMapped :: Double -> Double -> Vec
-        renderMapped x y = vecPow (renderRay $ vecNormalise $ Vec ((x-0.5)*aspect) (0.5-y) 1) (1.0/2.2)
+        renderMapped x y = vecPow (renderRay conf $ vecNormalise $ Vec ((x-0.5)*aspect) (0.5-y) 1) (1.0/2.2)
 
 renderImage :: Conf -> [[Vec]]
 renderImage conf@Conf{width=width, height=height} = [[renderTexel conf x y | x <- [0..width-1]] | y <- [0..height-1]]
@@ -63,7 +62,7 @@ serializeImage conf = B.pack $ map convertPixel $ concat $ concat $ (map.map) (v
         image = renderImage conf
         convertPixel x = round ((max (min x 1) 0)*255)
 
-conf = Conf{width=128, height=128}
+conf = Conf{width=128, height=128, light=Vec 1 1 0}
 
 main :: IO ()
 main = B.writeFile "output.tga" $ B.append (targaHeader conf) $ serializeImage conf
