@@ -19,6 +19,9 @@ vecDot (Vec x y z) (Vec a b c) = a*x + b*y + c*z
 vecMultiply :: Vec -> Double -> Vec
 vecMultiply (Vec x y z) c = Vec (x*c) (y*c) (z*c)
 
+vecPow :: Vec -> Double -> Vec
+vecPow (Vec x y z) c = Vec (x**c) (y**c) (z**c)
+
 vecDivide :: Vec -> Double -> Vec
 vecDivide v c = vecMultiply v (1/c)
 
