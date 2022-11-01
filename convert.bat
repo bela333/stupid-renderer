@@ -1,0 +1,1 @@
+ffmpeg -i output.tga output.png
