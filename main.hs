@@ -66,5 +66,4 @@ serializeImage conf = B.pack $ map convertPixel $ concat $ concat $ (map.map) (v
 conf = Conf{width=128, height=128}
 
 main :: IO ()
-main = do
-    B.writeFile "output.tga" $ B.append (targaHeader conf) $ serializeImage conf
+main = B.writeFile "output.tga" $ B.append (targaHeader conf) $ serializeImage conf
