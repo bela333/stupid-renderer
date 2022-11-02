@@ -13,8 +13,8 @@ data Conf = Conf{
     light :: Vec
 }
 
---conf = Conf{width=128, height=128, light=Vec 1 1 0}
-conf = Conf{width=1920, height=1080, light=Vec 1 1 0}
+conf = Conf{width=228, height=128, light=Vec 1 1 0}
+--conf = Conf{width=1920, height=1080, light=Vec 1 1 0}
 
 epsilon = 0.001
 
