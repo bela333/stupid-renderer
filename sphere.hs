@@ -26,7 +26,7 @@ quadratic a b c
 --   = (So-Ro)^2 - r^2
 
 sphereIntersect :: Vec -> Vec -> Sphere -> Maybe I.Intersection
-sphereIntersect ro rd Sphere{origin=origin, radius=radius, Sphere.color=color} = maybeDistance >>= \distance -> Just I.Intersection{I.color=color, I.pos=hit distance, I.normal=calcNormal origin (hit distance)}
+sphereIntersect ro rd Sphere{origin=origin, radius=radius, Sphere.color=color} = maybeDistance >>= \distance -> Just I.Intersection{I.color=color, I.pos=hit distance, I.normal=calcNormal origin (hit distance), I.dist=distance}
     where
         hit distance = vecAdd ro $ vecMultiply rd distance
 
