@@ -3,6 +3,7 @@ import Data.Bits
 import Data.Maybe
 import Vector
 import Sphere as S
+import Triangle as T
 import qualified Intersectable as I
 
 -- Configuration data
@@ -26,15 +27,18 @@ mySphere = S.Sphere{
     color=Vec 1 1 1
 }
 
-fakeGroundRadius = 500
+--fakeGroundRadius = 500
+--
+--fakeGround = S.Sphere{
+--    origin=vecSubtract (Vec 0 (-0.75) 2) (Vec 0 fakeGroundRadius 0),
+--    radius=fakeGroundRadius,
+--    color=Vec 1 1 1
+--}
+--
+--object = [mySphere, fakeGround]
 
-fakeGround = S.Sphere{
-    origin=vecSubtract (Vec 0 (-0.75) 2) (Vec 0 fakeGroundRadius 0),
-    radius=fakeGroundRadius,
-    color=Vec 1 1 1
-}
-
-object = [mySphere, fakeGround]
+object = [Triangle ((Vec 0 (-0.5) 1), (Vec 0 (-0.5) 2), (Vec 1 (-0.5) 1)) (Vec 1 1 1),
+    Triangle ((Vec 0 (-0.5) 2), (Vec 1 (-0.5) 2), (Vec 1 (-0.5) 1)) (Vec 1 1 1)]
 
 -- Main rendering procedures
 
