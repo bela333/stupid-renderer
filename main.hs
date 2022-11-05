@@ -14,6 +14,7 @@ data Conf a = Conf{
     width :: Integer,
     height :: Integer,
     light :: Vec,
+    camera :: Vec,
     object :: a
 }
 
@@ -43,11 +44,11 @@ shadingModel :: I.Intersectable a => Conf a -> Vec -> Vec -> Vec -> Double
 shadingModel = shadedPhong
 
 renderRay :: I.Intersectable a => Conf a -> Vec -> Vec
-renderRay conf@Conf{light=light, object=object} rd = fromMaybe (Vec 0 0 0) (intersection >>= return . colorIntersection)
+renderRay conf@Conf{light=light, object=object, camera=camera} rd = fromMaybe (Vec 0 0 0) (intersection >>= return . colorIntersection)
     where 
         colorIntersection :: I.Intersection -> Vec
         colorIntersection I.Intersection{I.color=color, I.normal=normal, I.pos=hit} = vecMultiply color (shadingModel conf light hit normal + 0.01)
-        intersection = I.intersect (Vec 0 0 0) rd object
+        intersection = I.intersect camera rd object
 
 -- Rendering boilerplate
 
@@ -95,5 +96,11 @@ main = do
     let teapot = constructBVH transformedTriangles
     let plane = Plane (Vec 0 1 0) (-1.01) planeColor
     --let conf = Conf{width=228, height=128, light=Vec 1 1 0, object=teapot `I.IntersectablePair` plane}
-    let conf = Conf{width=1920, height=1080, light=Vec 1 1 0, object=teapot `I.IntersectablePair` plane}
+    let conf = Conf{
+        width=1920,
+        height=1080,
+        light=Vec 1 1 0,
+        camera=Vec 0 0 0,
+        object=teapot `I.IntersectablePair` plane
+    }
     B.writeFile "output.tga" $ B.append (targaHeader conf) $ serializeImage conf
