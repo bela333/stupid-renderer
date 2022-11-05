@@ -8,6 +8,7 @@ import BVH as BVH
 import qualified Intersectable as I
 import AABB as AABB
 import Model
+import Plane
 
 -- Configuration data
 
@@ -92,6 +93,7 @@ main = do
     triangles <- readObj "teapot.obj"
     let transformedTriangles = translateTriangles (Vec epsilon (-1) 5) $ scaleTriangles 0.5 triangles
     let teapot = constructBVH transformedTriangles
-    --let conf = Conf{width=228, height=128, light=Vec 1 1 0, object=object}
-    let conf = Conf{width=1920, height=1080, light=Vec 1 1 0, object=teapot}
+    let plane = Plane (Vec 0 1 0) (-1) (Vec 0 1 0)
+    let conf = Conf{width=228, height=128, light=Vec 1 1 0, object=teapot `I.IntersectablePair` plane}
+    --let conf = Conf{width=1920, height=1080, light=Vec 1 1 0, object=teapot}
     B.writeFile "output.tga" $ B.append (targaHeader conf) $ serializeImage conf
