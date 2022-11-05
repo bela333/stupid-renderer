@@ -20,28 +20,6 @@ data Conf = Conf{
 
 epsilon = 0.001
 
--- Scene
-
---mySphere = S.Sphere{
---    origin=Vec 0 0 2,
---    radius=0.5,
---    color=Vec 1 1 1
---}
-
---fakeGroundRadius = 500
---
---fakeGround = S.Sphere{
---    origin=vecSubtract (Vec 0 (-0.75) 2) (Vec 0 fakeGroundRadius 0),
---    radius=fakeGroundRadius,
---    color=Vec 1 1 1
---}
---
---object = [mySphere, fakeGround]
-
---object = constructBVH $ [Triangle ((Vec 0 (-0.5) 1), (Vec 0 (-0.5) 2), (Vec 1 (-0.5) 1)) (Vec 1 1 1),
---    Triangle ((Vec 0 (-0.5) 2), (Vec 1 (-0.5) 2), (Vec 1 (-0.5) 1)) (Vec 1 1 1)]
-
-
 -- Main rendering procedures
 
 phongLighting :: Conf -> Vec -> Vec -> Vec -> Double
@@ -109,8 +87,6 @@ serializeImage conf = B.pack $ map convertPixel $ concat $ concat $ (map.map) (v
 
 main :: IO ()
 main = do
-    --let object = constructBVH $ [Triangle ((Vec 0 (-0.5) 1), (Vec 0 (-0.5) 2), (Vec 1 (-0.5) 1)) (Vec 1 1 1),
-    --        Triangle ((Vec 0 (-0.5) 2), (Vec 1 (-0.5) 2), (Vec 1 (-0.5) 1)) (Vec 1 1 1)]
     triangles <- readObj "teapot.obj"
     let transformedTriangles = translateTriangles (Vec 0 (-1) 5) $ scaleTriangles 0.5 triangles
     let object = constructBVH transformedTriangles
