@@ -11,22 +11,22 @@ import Model
 
 -- Configuration data
 
-data Conf = Conf{
+data Conf a = Conf{
     width :: Integer,
     height :: Integer,
     light :: Vec,
-    object :: BVH
+    object :: a
 }
 
 epsilon = 0.001
 
 -- Main rendering procedures
 
-phongLighting :: Conf -> Vec -> Vec -> Vec -> Double
+phongLighting :: I.Intersectable a => Conf a -> Vec -> Vec -> Vec -> Double
 phongLighting Conf{object=object} light hit normal = (max 0 (vecDot toLight normal))
     where toLight = vecNormalise (vecSubtract light hit)
 
-shadedPhong :: Conf -> Vec -> Vec -> Vec -> Double
+shadedPhong :: I.Intersectable a => Conf a -> Vec -> Vec -> Vec -> Double
 shadedPhong conf@Conf{object=object} light hit normal = shaded intersection
     where
         phong = phongLighting conf light hit normal
@@ -40,9 +40,10 @@ shadedPhong conf@Conf{object=object} light hit normal = shaded intersection
             | otherwise                                = 0
 
 --For quick access
+shadingModel :: I.Intersectable a => Conf a -> Vec -> Vec -> Vec -> Double
 shadingModel = shadedPhong
 
-renderRay :: Conf -> Vec -> Vec
+renderRay :: I.Intersectable a => Conf a -> Vec -> Vec
 renderRay conf@Conf{light=light, object=object} rd = fromMaybe (Vec 0 0 0) (intersection >>= return . colorIntersection)
     where 
         colorIntersection :: I.Intersection -> Vec
@@ -51,7 +52,7 @@ renderRay conf@Conf{light=light, object=object} rd = fromMaybe (Vec 0 0 0) (inte
 
 -- Rendering boilerplate
 
-renderTexel :: Conf -> Integer -> Integer -> Vec
+renderTexel :: I.Intersectable a => Conf a -> Integer -> Integer -> Vec
 renderTexel conf@Conf{width=width, height=height} x y = renderMapped (fromIntegral x / widthF) (fromIntegral y / heightF)
     where
         widthF :: Double
@@ -63,12 +64,12 @@ renderTexel conf@Conf{width=width, height=height} x y = renderMapped (fromIntegr
         renderMapped :: Double -> Double -> Vec
         renderMapped x y = vecPow (renderRay conf $ vecNormalise $ Vec ((x-0.5)*aspect) (0.5-y) 1) (1.0/2.2)
 
-renderImage :: Conf -> [[Vec]]
+renderImage :: I.Intersectable a => Conf a -> [[Vec]]
 renderImage conf@Conf{width=width, height=height} = [[renderTexel conf x y | x <- [0..width-1]] | y <- [0..height-1]]
 
 -- File writing
 
-targaHeader :: Conf -> B.ByteString
+targaHeader :: I.Intersectable a => Conf a -> B.ByteString
 targaHeader Conf{width=width, height=height} = B.pack [
     0,             -- ID length
     0,             -- Color map type
@@ -79,17 +80,18 @@ targaHeader Conf{width=width, height=height} = B.pack [
     fromIntegral $ height .&. 255, fromIntegral $ (height `shiftR` 8) .&. 255, -- Height
     24,32]
 
-serializeImage :: Conf -> B.ByteString
+serializeImage :: I.Intersectable a => Conf a -> B.ByteString
 serializeImage conf = B.pack $ map convertPixel $ concat $ concat $ (map.map) (vecToList.(\(Vec x y z) -> Vec z y x)) image
     where
         image = renderImage conf
         convertPixel x = round ((max (min x 1) 0)*255)
 
+
 main :: IO ()
 main = do
     triangles <- readObj "teapot.obj"
     let transformedTriangles = translateTriangles (Vec epsilon (-1) 5) $ scaleTriangles 0.5 triangles
-    let object = constructBVH transformedTriangles
+    let teapot = constructBVH transformedTriangles
     --let conf = Conf{width=228, height=128, light=Vec 1 1 0, object=object}
-    let conf = Conf{width=1920, height=1080, light=Vec 1 1 0, object=object}
+    let conf = Conf{width=1920, height=1080, light=Vec 1 1 0, object=teapot}
     B.writeFile "output.tga" $ B.append (targaHeader conf) $ serializeImage conf
