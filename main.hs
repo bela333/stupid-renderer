@@ -1,5 +1,6 @@
 import qualified Data.ByteString.Lazy as B
 import qualified Intersectable as I
+import System.Environment
 import Data.Bits
 import Data.Maybe
 import Vector
@@ -92,6 +93,11 @@ planeColor = srgbToLinear $ Vec 103 230 137 `vecDivide` 255
 
 main :: IO ()
 main = do
+    [frameNo', outPath] <- getArgs
+    let frameNo = read frameNo' :: Double
+
+    let time = frameNo/24
+
     triangles <- readObj "teapot.obj" teapotColor
     let transformedTriangles = translateTriangles (Vec epsilon (-1) 5) $ scaleTriangles 0.5 triangles
     let teapot = constructBVH transformedTriangles
@@ -100,7 +106,7 @@ main = do
     let (width, height) = (1920, 1080)
     --let (width, height) = (228, 128)
 
-    let cameraPosition = Vec 0 1 0
+    let cameraPosition = Vec ((sin $ time * 2 * pi)*5) 1 (-(cos $ time * 2 * pi)*5 + 5)
     let focusPosition  = Vec 0 0 5
 
     let conf = Conf{
@@ -111,4 +117,4 @@ main = do
         cameraMatrix=lookAtMatrix $ vecSubtract focusPosition cameraPosition,
         object=teapot `I.IntersectablePair` plane
     }
-    B.writeFile "output.tga" $ B.append (targaHeader conf) $ serializeImage conf
+    B.writeFile outPath $ B.append (targaHeader conf) $ serializeImage conf

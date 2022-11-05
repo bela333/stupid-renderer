@@ -1,5 +1,7 @@
 output.tga
 output.png
+frames/
 main
 *.hi
 *.o
+.DS_Store
