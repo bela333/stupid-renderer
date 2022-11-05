@@ -6,7 +6,7 @@ data Triangle = Triangle (Vec, Vec, Vec) Vec
 
 
 triangleIntersect :: Vec -> Vec -> Triangle -> Maybe I.Intersection
-triangleIntersect ro rd (Triangle (a, b, c) color) = cramer ca cb cc cd >>= checkBounds >>= Just . resultToIntersection
+triangleIntersect ro rd (Triangle (a, b, c) color) = cramer (ca, cb, cc) cd >>= checkBounds >>= Just . resultToIntersection
     where
         ca = vecSubtract c a
         cb = vecSubtract c b

@@ -95,10 +95,13 @@ main = do
     let transformedTriangles = translateTriangles (Vec epsilon (-1) 5) $ scaleTriangles 0.5 triangles
     let teapot = constructBVH transformedTriangles
     let plane = Plane (Vec 0 1 0) (-1.01) planeColor
-    --let conf = Conf{width=228, height=128, light=Vec 1 1 0, object=teapot `I.IntersectablePair` plane}
+    
+    --let (width, height) = (1920, 1080)
+    let (width, height) = (228, 128)
+
     let conf = Conf{
-        width=1920,
-        height=1080,
+        width=width,
+        height=height,
         light=Vec 1 1 0,
         camera=Vec 0 0 0,
         object=teapot `I.IntersectablePair` plane
