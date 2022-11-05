@@ -3,3 +3,4 @@ output.png
 main
 *.hi
 *.o
+.DS_Store
