@@ -1,7 +1,9 @@
 module Triangle where
 import Vector
+import AABB
 import qualified Intersectable as I
 data Triangle = Triangle (Vec, Vec, Vec) Vec
+
 
 triangleIntersect :: Vec -> Vec -> Triangle -> Maybe I.Intersection
 triangleIntersect ro rd (Triangle (a, b, c) color) = cramer ca cb cc cd >>= checkBounds >>= Just . resultToIntersection
@@ -21,6 +23,23 @@ triangleIntersect ro rd (Triangle (a, b, c) color) = cramer ca cb cc cd >>= chec
             I.dist = t,
             I.normal = vecNormalise $ vecCross (vecSubtract a c) (vecSubtract b c)
         }
+
+triangleBoundingBox :: Triangle -> AABB
+triangleBoundingBox (Triangle (a, b, c) _) = AABB vmin vmax
+    where
+        vmin = a `vecMin` b `vecMin` c
+        vmax = a `vecMax` b `vecMax` c
+
+meshBoundingBox :: [Triangle] -> AABB
+meshBoundingBox ts = foldl aabbUnion x xs
+    where
+        (x:xs) = map triangleBoundingBox ts
+
+triangleCentroid :: Triangle -> Vec
+triangleCentroid (Triangle (a, b, c) _) = vecDivide (a `vecAdd` b `vecAdd` c) 3
+
+wrappedTriangle :: Triangle -> AABBWrapper Triangle
+wrappedTriangle t = AABBWrapper (triangleBoundingBox t) t
 
 instance I.Intersectable Triangle where
     intersect = triangleIntersect

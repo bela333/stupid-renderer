@@ -1,5 +1,11 @@
 module Vector where
 data Vec = Vec Double Double Double deriving (Show)
+data Axis = X | Y | Z
+
+getAxis :: Axis -> Vec -> Double
+getAxis X (Vec x y z) = x
+getAxis Y (Vec x y z) = y
+getAxis Z (Vec x y z) = z
 
 getX :: Vec -> Double
 getX (Vec x y z) = x
@@ -64,3 +70,21 @@ vecCross (Vec a1 a2 a3) (Vec b1 b2 b3) = Vec d e f
         d = a2*b3 - a3*b2
         e = a3*b1 - a1*b3
         f = a1*b2 - a2*b1
+
+vecMin :: Vec -> Vec -> Vec
+vecMin (Vec x1 y1 z1) (Vec x2 y2 z2) = Vec (x1 `min` x2) (y1 `min` y2) (z1 `min` z2)
+
+vecMax :: Vec -> Vec -> Vec
+vecMax (Vec x1 y1 z1) (Vec x2 y2 z2) = Vec (x1 `max` x2) (y1 `max` y2) (z1 `max` z2)
+
+vecMaxAxis :: Vec -> Axis
+vecMaxAxis (Vec x y z)
+    | x > y && x > z = X
+    | y > x && y > z = Y
+    | otherwise      = Z
+
+vecMinAxis :: Vec -> Axis
+vecMinAxis (Vec x y z)
+    | x < y && x < z = X
+    | y < x && y < z = Y
+    | otherwise      = Z

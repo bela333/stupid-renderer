@@ -4,7 +4,9 @@ import Data.Maybe
 import Vector
 import Sphere as S
 import Triangle as T
+import BVH as BVH
 import qualified Intersectable as I
+import AABB as AABB
 
 -- Configuration data
 
@@ -21,11 +23,11 @@ epsilon = 0.001
 
 -- Scene
 
-mySphere = S.Sphere{
-    origin=Vec 0 0 2,
-    radius=0.5,
-    color=Vec 1 1 1
-}
+--mySphere = S.Sphere{
+--    origin=Vec 0 0 2,
+--    radius=0.5,
+--    color=Vec 1 1 1
+--}
 
 --fakeGroundRadius = 500
 --
@@ -37,8 +39,9 @@ mySphere = S.Sphere{
 --
 --object = [mySphere, fakeGround]
 
-object = [Triangle ((Vec 0 (-0.5) 1), (Vec 0 (-0.5) 2), (Vec 1 (-0.5) 1)) (Vec 1 1 1),
+object = constructBVH $ [Triangle ((Vec 0 (-0.5) 1), (Vec 0 (-0.5) 2), (Vec 1 (-0.5) 1)) (Vec 1 1 1),
     Triangle ((Vec 0 (-0.5) 2), (Vec 1 (-0.5) 2), (Vec 1 (-0.5) 1)) (Vec 1 1 1)]
+
 
 -- Main rendering procedures
 
