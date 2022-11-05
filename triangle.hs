@@ -41,5 +41,18 @@ triangleCentroid (Triangle (a, b, c) _) = vecDivide (a `vecAdd` b `vecAdd` c) 3
 wrappedTriangle :: Triangle -> AABBWrapper Triangle
 wrappedTriangle t = AABBWrapper (triangleBoundingBox t) t
 
+scaleTriangle :: Double -> Triangle -> Triangle
+scaleTriangle f (Triangle (a, b, c) color) = Triangle (scale a, scale b, scale c) color
+    where scale = (`vecMultiply` f)
+
+scaleTriangles :: Double -> [Triangle] -> [Triangle]
+scaleTriangles f = map (scaleTriangle f)
+
+translateTriangle :: Vec -> Triangle -> Triangle
+translateTriangle transf (Triangle (a, b, c) color) = Triangle (a `vecAdd` transf, b `vecAdd` transf, c `vecAdd` transf) color
+
+translateTriangles :: Vec -> [Triangle] -> [Triangle]
+translateTriangles transf = map (translateTriangle transf)
+
 instance I.Intersectable Triangle where
     intersect = triangleIntersect

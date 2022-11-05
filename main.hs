@@ -7,17 +7,16 @@ import Triangle as T
 import BVH as BVH
 import qualified Intersectable as I
 import AABB as AABB
+import Model
 
 -- Configuration data
 
 data Conf = Conf{
     width :: Integer,
     height :: Integer,
-    light :: Vec
+    light :: Vec,
+    object :: BVH
 }
-
-conf = Conf{width=228, height=128, light=Vec 1 1 0}
---conf = Conf{width=1920, height=1080, light=Vec 1 1 0}
 
 epsilon = 0.001
 
@@ -39,20 +38,20 @@ epsilon = 0.001
 --
 --object = [mySphere, fakeGround]
 
-object = constructBVH $ [Triangle ((Vec 0 (-0.5) 1), (Vec 0 (-0.5) 2), (Vec 1 (-0.5) 1)) (Vec 1 1 1),
-    Triangle ((Vec 0 (-0.5) 2), (Vec 1 (-0.5) 2), (Vec 1 (-0.5) 1)) (Vec 1 1 1)]
+--object = constructBVH $ [Triangle ((Vec 0 (-0.5) 1), (Vec 0 (-0.5) 2), (Vec 1 (-0.5) 1)) (Vec 1 1 1),
+--    Triangle ((Vec 0 (-0.5) 2), (Vec 1 (-0.5) 2), (Vec 1 (-0.5) 1)) (Vec 1 1 1)]
 
 
 -- Main rendering procedures
 
-phongLighting :: Vec -> Vec -> Vec -> Double
-phongLighting light hit normal = (max 0 (vecDot toLight normal))
+phongLighting :: Conf -> Vec -> Vec -> Vec -> Double
+phongLighting Conf{object=object} light hit normal = (max 0 (vecDot toLight normal))
     where toLight = vecNormalise (vecSubtract light hit)
 
-shadedPhong :: Vec -> Vec -> Vec -> Double
-shadedPhong light hit normal = shaded intersection
+shadedPhong :: Conf -> Vec -> Vec -> Vec -> Double
+shadedPhong conf@Conf{object=object} light hit normal = shaded intersection
     where
-        phong = phongLighting light hit normal
+        phong = phongLighting conf light hit normal
         ro = vecAdd hit (vecMultiply normal epsilon)
         rd = vecNormalise $ vecSubtract light hit
         intersection = I.intersect ro rd object
@@ -66,10 +65,10 @@ shadedPhong light hit normal = shaded intersection
 shadingModel = shadedPhong
 
 renderRay :: Conf -> Vec -> Vec
-renderRay Conf{light=light} rd = fromMaybe (Vec 0 0 0) (intersection >>= return . colorIntersection)
+renderRay conf@Conf{light=light, object=object} rd = fromMaybe (Vec 0 0 0) (intersection >>= return . colorIntersection)
     where 
         colorIntersection :: I.Intersection -> Vec
-        colorIntersection I.Intersection{I.color=color, I.normal=normal, I.pos=hit} = vecMultiply color (shadingModel light hit normal + 0.01)
+        colorIntersection I.Intersection{I.color=color, I.normal=normal, I.pos=hit} = vecMultiply color (shadingModel conf light hit normal + 0.01)
         intersection = I.intersect (Vec 0 0 0) rd object
 
 -- Rendering boilerplate
@@ -109,4 +108,12 @@ serializeImage conf = B.pack $ map convertPixel $ concat $ concat $ (map.map) (v
         convertPixel x = round ((max (min x 1) 0)*255)
 
 main :: IO ()
-main = B.writeFile "output.tga" $ B.append (targaHeader conf) $ serializeImage conf
+main = do
+    --let object = constructBVH $ [Triangle ((Vec 0 (-0.5) 1), (Vec 0 (-0.5) 2), (Vec 1 (-0.5) 1)) (Vec 1 1 1),
+    --        Triangle ((Vec 0 (-0.5) 2), (Vec 1 (-0.5) 2), (Vec 1 (-0.5) 1)) (Vec 1 1 1)]
+    triangles <- readObj "teapot.obj"
+    let transformedTriangles = translateTriangles (Vec 0 (-1) 5) $ scaleTriangles 0.5 triangles
+    let object = constructBVH transformedTriangles
+    --let conf = Conf{width=228, height=128, light=Vec 1 1 0, object=object}
+    let conf = Conf{width=1920, height=1080, light=Vec 1 1 0, object=object}
+    B.writeFile "output.tga" $ B.append (targaHeader conf) $ serializeImage conf
