@@ -87,13 +87,15 @@ serializeImage conf = B.pack $ map convertPixel $ concat $ concat $ (map.map) (v
         image = renderImage conf
         convertPixel x = round ((max (min x 1) 0)*255)
 
+teapotColor = Vec 1 1 1
+planeColor = Vec 0 1 0
 
 main :: IO ()
 main = do
-    triangles <- readObj "teapot.obj"
+    triangles <- readObj "teapot.obj" teapotColor
     let transformedTriangles = translateTriangles (Vec epsilon (-1) 5) $ scaleTriangles 0.5 triangles
     let teapot = constructBVH transformedTriangles
-    let plane = Plane (Vec 0 1 0) (-1) (Vec 0 1 0)
+    let plane = Plane (Vec 0 1 0) (-1) planeColor
     let conf = Conf{width=228, height=128, light=Vec 1 1 0, object=teapot `I.IntersectablePair` plane}
     --let conf = Conf{width=1920, height=1080, light=Vec 1 1 0, object=teapot}
     B.writeFile "output.tga" $ B.append (targaHeader conf) $ serializeImage conf
