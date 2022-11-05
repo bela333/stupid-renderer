@@ -63,7 +63,7 @@ renderTexel conf@Conf{width=width, height=height} x y = renderMapped (fromIntegr
         aspect = widthF/heightF
 
         renderMapped :: Double -> Double -> Vec
-        renderMapped x y = vecPow (renderRay conf $ vecNormalise $ Vec ((x-0.5)*aspect) (0.5-y) 1) (1.0/2.2)
+        renderMapped x y = linearToSrgb $ renderRay conf $ vecNormalise $ Vec ((x-0.5)*aspect) (0.5-y) 1
 
 renderImage :: I.Intersectable a => Conf a -> [[Vec]]
 renderImage conf@Conf{width=width, height=height} = [[renderTexel conf x y | x <- [0..width-1]] | y <- [0..height-1]]
@@ -87,15 +87,15 @@ serializeImage conf = B.pack $ map convertPixel $ concat $ concat $ (map.map) (v
         image = renderImage conf
         convertPixel x = round ((max (min x 1) 0)*255)
 
-teapotColor = Vec 1 1 1
-planeColor = Vec 0 1 0
+teapotColor = srgbToLinear $ Vec 237 240 242 `vecDivide` 255
+planeColor = srgbToLinear $ Vec 103 230 137 `vecDivide` 255
 
 main :: IO ()
 main = do
     triangles <- readObj "teapot.obj" teapotColor
     let transformedTriangles = translateTriangles (Vec epsilon (-1) 5) $ scaleTriangles 0.5 triangles
     let teapot = constructBVH transformedTriangles
-    let plane = Plane (Vec 0 1 0) (-1) planeColor
-    let conf = Conf{width=228, height=128, light=Vec 1 1 0, object=teapot `I.IntersectablePair` plane}
-    --let conf = Conf{width=1920, height=1080, light=Vec 1 1 0, object=teapot}
+    let plane = Plane (Vec 0 1 0) (-1.01) planeColor
+    --let conf = Conf{width=228, height=128, light=Vec 1 1 0, object=teapot `I.IntersectablePair` plane}
+    let conf = Conf{width=1920, height=1080, light=Vec 1 1 0, object=teapot `I.IntersectablePair` plane}
     B.writeFile "output.tga" $ B.append (targaHeader conf) $ serializeImage conf

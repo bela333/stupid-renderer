@@ -88,3 +88,9 @@ vecMinAxis (Vec x y z)
     | x < y && x < z = X
     | y < x && y < z = Y
     | otherwise      = Z
+
+linearToSrgb :: Vec -> Vec
+linearToSrgb = (`vecPow` (1.0/2.2))
+
+srgbToLinear :: Vec -> Vec
+srgbToLinear = (`vecPow` 2.2)
