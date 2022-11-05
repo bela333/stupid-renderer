@@ -15,6 +15,7 @@ data Conf a = Conf{
     height :: Integer,
     light :: Vec,
     camera :: Vec,
+    cameraMatrix :: (Vec, Vec, Vec),
     object :: a
 }
 
@@ -53,7 +54,7 @@ renderRay conf@Conf{light=light, object=object, camera=camera} rd = fromMaybe (V
 -- Rendering boilerplate
 
 renderTexel :: I.Intersectable a => Conf a -> Integer -> Integer -> Vec
-renderTexel conf@Conf{width=width, height=height} x y = renderMapped (fromIntegral x / widthF) (fromIntegral y / heightF)
+renderTexel conf@Conf{width=width, height=height, cameraMatrix=cameraMatrix} x y = renderMapped (fromIntegral x / widthF) (fromIntegral y / heightF)
     where
         widthF :: Double
         heightF :: Double
@@ -62,7 +63,7 @@ renderTexel conf@Conf{width=width, height=height} x y = renderMapped (fromIntegr
         aspect = widthF/heightF
 
         renderMapped :: Double -> Double -> Vec
-        renderMapped x y = linearToSrgb $ renderRay conf $ vecNormalise $ Vec ((x-0.5)*aspect) (0.5-y) 1
+        renderMapped x y = linearToSrgb $ renderRay conf $ vecNormalise $ matrixVectorProduct cameraMatrix $ Vec ((x-0.5)*aspect) (0.5-y) 1
 
 renderImage :: I.Intersectable a => Conf a -> [[Vec]]
 renderImage conf@Conf{width=width, height=height} = [[renderTexel conf x y | x <- [0..width-1]] | y <- [0..height-1]]
@@ -96,14 +97,18 @@ main = do
     let teapot = constructBVH transformedTriangles
     let plane = Plane (Vec 0 1 0) (-1.01) planeColor
     
-    --let (width, height) = (1920, 1080)
-    let (width, height) = (228, 128)
+    let (width, height) = (1920, 1080)
+    --let (width, height) = (228, 128)
+
+    let cameraPosition = Vec 0 1 0
+    let focusPosition  = Vec 0 0 5
 
     let conf = Conf{
         width=width,
         height=height,
         light=Vec 1 1 0,
-        camera=Vec 0 0 0,
+        camera=cameraPosition,
+        cameraMatrix=lookAtMatrix $ vecSubtract focusPosition cameraPosition,
         object=teapot `I.IntersectablePair` plane
     }
     B.writeFile "output.tga" $ B.append (targaHeader conf) $ serializeImage conf

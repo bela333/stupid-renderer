@@ -2,6 +2,8 @@ module Vector where
 data Vec = Vec Double Double Double deriving (Show)
 data Axis = X | Y | Z
 
+identityMatrix = (Vec 1 0 0, Vec 0 1 0, Vec 0 0 1)
+
 getAxis :: Axis -> Vec -> Double
 getAxis X (Vec x y z) = x
 getAxis Y (Vec x y z) = y
@@ -52,11 +54,12 @@ vecNormalise v = vecDivide v (vecLength v)
 matrixVectorProduct :: (Vec, Vec, Vec) -> Vec -> Vec
 matrixVectorProduct (m1, m2, m3) (Vec x y z) = vecMultiply m1 x `vecAdd` vecMultiply m2 y `vecAdd` vecMultiply m3 z
 
+--I might have fucked up the cross product? Either way, this is some real fucked up right-hand rule.
 lookAtMatrix :: Vec -> (Vec, Vec, Vec)
-lookAtMatrix forward = (right, up, forward)
+lookAtMatrix forward = (right, up, vecNormalise $ forward)
     where
-        right = vecNormalise $ vecCross forward (Vec 0 1 0)
-        up = vecNormalise $ vecCross right forward
+        right = vecNormalise $ vecNegate $ vecCross forward (Vec 0 1 0)
+        up = vecNormalise $ vecCross forward right
 
 determinant :: (Vec, Vec, Vec) -> Double
 determinant ((Vec x1 y1 z1), (Vec x2 y2 z2), (Vec x3 y3 z3)) = x1*p1 - y1*p2 + z1*p3
@@ -66,7 +69,7 @@ determinant ((Vec x1 y1 z1), (Vec x2 y2 z2), (Vec x3 y3 z3)) = x1*p1 - y1*p2 + z
         p3 = x2*y3-x3*y2
 
 cramer :: (Vec, Vec, Vec) -> Vec -> Maybe Vec
-cramer (a, b, c) d 
+cramer (a, b, c) d
     | det == 0  = Nothing
     | otherwise = Just $ vecDivide innerVec det
     where
