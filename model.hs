@@ -16,13 +16,20 @@ readFaces lines vertices color = map lineToFace $ filter (isFace) lines
     where
         isFace (x:xs) = x == "f"
         isFace [] = False
-        --TODO: remove parameters other than vertex
+        splitOn :: Eq a => a -> [a] -> [[a]]
+        splitOn div [] = [[]]
+        splitOn div (x:xs)
+            | x == div  = []:splitOn div xs
+            | otherwise = (x:fst):others
+            where (fst:others) = splitOn div xs
+        extractVertexIndex :: String -> String
+        extractVertexIndex xs = head $ splitOn '/' xs
         lineToFace :: [String] -> Triangle
         lineToFace (_:vi1:vi2:vi3:_) = Triangle (v1, v2, v3) color
             where
-                v1 = vertices `genericIndex` (read vi1 - 1)
-                v2 = vertices `genericIndex` (read vi2 - 1)
-                v3 = vertices `genericIndex` (read vi3 - 1)
+                v1 = vertices `genericIndex` (read (extractVertexIndex vi1) - 1)
+                v2 = vertices `genericIndex` (read (extractVertexIndex vi2) - 1)
+                v3 = vertices `genericIndex` (read (extractVertexIndex vi3) - 1)
 
 swapDirections :: Vec -> Vec
 swapDirections (Vec x y z) = Vec x z y
