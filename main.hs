@@ -88,7 +88,7 @@ serializeImage conf = B.pack $ map convertPixel $ concat $ concat $ (map.map) (v
 main :: IO ()
 main = do
     triangles <- readObj "teapot.obj"
-    let transformedTriangles = translateTriangles (Vec 0 (-1) 5) $ scaleTriangles 0.5 triangles
+    let transformedTriangles = translateTriangles (Vec epsilon (-1) 5) $ scaleTriangles 0.5 triangles
     let object = constructBVH transformedTriangles
     --let conf = Conf{width=228, height=128, light=Vec 1 1 0, object=object}
     let conf = Conf{width=1920, height=1080, light=Vec 1 1 0, object=object}
