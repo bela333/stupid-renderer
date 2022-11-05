@@ -4,13 +4,21 @@ import Intersectable as I
 import Vector
 import Triangle
 import Data.List
-data BVH = Node (AABBWrapper BVH) (AABBWrapper BVH) | Leaf (AABBWrapper Triangle)
+data BVH = Node (AABBWrapper BVHPair) | Leaf (AABBWrapper Triangle)
+data BVHPair = BVHPair BVH BVH
 
 bvhIntersect :: Vec -> Vec -> BVH -> Maybe I.Intersection
-bvhIntersect ro rd (Node inner1 inner2) = extractIntersection intersection1 intersection2
+bvhIntersect ro rd (Node inner) = I.intersect ro rd inner
+bvhIntersect ro rd (Leaf inner) = I.intersect ro rd inner
+
+instance I.Intersectable BVH where
+    intersect = bvhIntersect
+
+bvhPairIntersect :: Vec -> Vec -> BVHPair -> Maybe I.Intersection
+bvhPairIntersect ro rd (BVHPair bvh1 bvh2) = extractIntersection intersection1 intersection2
     where
-        intersection1 = I.intersect ro rd inner1
-        intersection2 = I.intersect ro rd inner2
+        intersection1 = I.intersect ro rd bvh1
+        intersection2 = I.intersect ro rd bvh2
         extractIntersection :: Maybe I.Intersection -> Maybe I.Intersection -> Maybe I.Intersection
         extractIntersection Nothing Nothing = Nothing
         extractIntersection (Just a) Nothing = Just a
@@ -18,21 +26,21 @@ bvhIntersect ro rd (Node inner1 inner2) = extractIntersection intersection1 inte
         extractIntersection (Just a) (Just b)
             | (dist a) < (dist b) = Just a
             | otherwise           = Just b
-bvhIntersect ro rd (Leaf inner) = I.intersect ro rd inner
 
-instance I.Intersectable BVH where
-    intersect = bvhIntersect
+instance I.Intersectable BVHPair where
+    intersect = bvhPairIntersect
 
--- TODO: Use a better heuristic
+
 
 constructBVH :: [Triangle] -> BVH
 constructBVH [t] = Leaf $ wrappedTriangle $ t
-constructBVH ts = Node (AABBWrapper bb1 $ constructBVH p1) (AABBWrapper bb2 $ constructBVH p2)
+constructBVH ts = Node $ AABBWrapper bb (BVHPair (constructBVH p1) (constructBVH p2))
     where
-        bb1 = meshBoundingBox p1
-        bb2 = meshBoundingBox p2
-        (p1, p2) = partition (\x -> axis (triangleCentroid x) > threshold) ts
+        thresholdIndex = (genericLength ts) `div` 2
+        p1 = take thresholdIndex sorted
+        p2 = drop thresholdIndex sorted
+        sorted = sortBy compareCentroids ts
         axis = getAxis $ aabbMaxAxis bb
+        compareCentroids c1 c2 = compare (axis $ triangleCentroid c1) (axis $ triangleCentroid c2)
         bb = meshBoundingBox ts
         AABB vmin vmax = bb
-        threshold = ((axis vmin) + (axis vmax)) / 2
