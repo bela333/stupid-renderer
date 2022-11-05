@@ -1,14 +1,12 @@
 import qualified Data.ByteString.Lazy as B
+import qualified Intersectable as I
 import Data.Bits
 import Data.Maybe
 import Vector
-import Sphere as S
-import Triangle as T
-import BVH as BVH
-import qualified Intersectable as I
-import AABB as AABB
 import Model
 import Plane
+import BVH
+import Triangle
 
 -- Configuration data
 

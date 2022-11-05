@@ -1,6 +1,6 @@
 module AABB where
 import Vector
-import Intersectable as I
+import qualified Intersectable as I
 import Data.Maybe
 data AABB = AABB Vec Vec
 
@@ -39,7 +39,7 @@ aabbMinAxis (AABB vmin vmax) = vecMinAxis $ vecSubtract vmax vmin
 
 data AABBWrapper a = AABBWrapper AABB a
 
-instance Intersectable a => Intersectable (AABBWrapper a) where
+instance I.Intersectable a => I.Intersectable (AABBWrapper a) where
     intersect ro rd (AABBWrapper aabb inner)
-        | isJust $ aabbIntersection ro rd aabb = intersect ro rd inner
+        | isJust $ aabbIntersection ro rd aabb = I.intersect ro rd inner
         | otherwise = Nothing

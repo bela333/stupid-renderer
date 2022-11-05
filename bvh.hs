@@ -1,6 +1,6 @@
 module BVH where
 import AABB
-import Intersectable as I
+import qualified Intersectable as I
 import Vector
 import Triangle
 import Data.List
@@ -15,7 +15,7 @@ instance I.Intersectable BVH where
 
 constructBVH :: [Triangle] -> BVH
 constructBVH [t] = Leaf $ wrappedTriangle $ t
-constructBVH ts = Node $ AABBWrapper bb (IntersectablePair (constructBVH p1) (constructBVH p2))
+constructBVH ts = Node $ AABBWrapper bb (I.IntersectablePair (constructBVH p1) (constructBVH p2))
     where
         thresholdIndex = (genericLength ts) `div` 2
         p1 = take thresholdIndex sorted
