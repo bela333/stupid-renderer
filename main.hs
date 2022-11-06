@@ -23,14 +23,17 @@ epsilon = 0.001
 
 -- Main rendering procedures
 
-phongLighting :: I.Intersectable a => Conf a -> Vec -> Vec -> Vec -> Double
-phongLighting Conf{object=object} light hit normal = (max 0 (vecDot toLight normal))
-    where toLight = vecNormalise (vecSubtract light hit)
-
-shadedPhong :: I.Intersectable a => Conf a -> Vec -> Vec -> Vec -> Double
-shadedPhong conf@Conf{object=object} light hit normal = shaded intersection
+phongLighting :: I.Intersectable a => Conf a -> Vec -> Vec -> Vec -> Vec -> Double
+phongLighting Conf{object=object} light ro hit normal = diffuse + specular*0.5
     where
-        phong = phongLighting conf light hit normal
+        diffuse = max 0 $ vecDot toLight normal
+        specular = (max 0 $ vecDot toLight $ vecReflect normal $ vecNormalise $ vecSubtract ro hit)**10
+        toLight = vecNormalise (vecSubtract light hit)
+
+shadedPhong :: I.Intersectable a => Conf a -> Vec -> Vec -> Vec -> Vec -> Double
+shadedPhong conf@Conf{object=object} light ro hit normal = shaded intersection
+    where
+        phong = phongLighting conf light ro hit normal
         ro = vecAdd hit (vecMultiply normal epsilon)
         rd = vecNormalise $ vecSubtract light hit
         intersection = I.intersect ro rd object
@@ -41,14 +44,14 @@ shadedPhong conf@Conf{object=object} light hit normal = shaded intersection
             | otherwise                                = 0
 
 --For quick access
-shadingModel :: I.Intersectable a => Conf a -> Vec -> Vec -> Vec -> Double
+shadingModel :: I.Intersectable a => Conf a -> Vec -> Vec -> Vec -> Vec -> Double
 shadingModel = shadedPhong
 
 renderRay :: I.Intersectable a => Conf a -> Vec -> Vec
 renderRay conf@Conf{light=light, object=object, camera=camera} rd = fromMaybe (Vec 0 0 0) (intersection >>= return . colorIntersection)
     where 
         colorIntersection :: I.Intersection -> Vec
-        colorIntersection I.Intersection{I.color=color, I.normal=normal, I.pos=hit} = vecMultiply color (shadingModel conf light hit normal + 0.01)
+        colorIntersection I.Intersection{I.color=color, I.normal=normal, I.pos=hit} = vecMultiply color (shadingModel conf light camera hit normal + 0.01)
         intersection = I.intersect camera rd object
 
 -- Rendering boilerplate

@@ -24,6 +24,9 @@ vecToList (Vec a b c) = [a, b, c]
 vecDot :: Vec -> Vec -> Double
 vecDot (Vec x y z) (Vec a b c) = a*x + b*y + c*z
 
+vecReflect :: Vec -> Vec -> Vec
+vecReflect normal dir = vecSubtract (normal `vecMultiply` ((2*) $ vecDot normal dir)) dir
+
 vecMultiply :: Vec -> Double -> Vec
 vecMultiply (Vec x y z) c = Vec (x*c) (y*c) (z*c)
 
