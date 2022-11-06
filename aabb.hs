@@ -10,8 +10,9 @@ aabbUnion (AABB vmin1 vmax1) (AABB vmin2 vmax2) = AABB (vmin1 `vecMin` vmin2) (v
 aabbIntersection :: Vec -> Vec -> AABB -> Maybe Double
 aabbIntersection ro (Vec rdx rdy rdz) (AABB vmin' vmax')
     | tmin > tmax = Nothing
-    | tmin < 0 = Nothing
-    | otherwise = Just tmin
+    | tmin > 0    = Just tmin
+    | tmax > 0    = Just tmax
+    | otherwise   = Nothing
     where
         Vec vminx vminy vminz = vecSubtract vmin' ro
         Vec vmaxx vmaxy vmaxz = vecSubtract vmax' ro

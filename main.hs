@@ -95,7 +95,7 @@ main = do
     triangles <- readObj "teapot.obj" teapotColor
     let transformedTriangles = translateTriangles (Vec epsilon (-1) 5) $ scaleTriangles 0.5 triangles
     let teapot = constructBVH transformedTriangles
-    let plane = Plane (Vec 0 1 0) (-1.01) planeColor
+    let plane = Plane (Vec 0 1 0) (-1) planeColor
     
     let (width, height) = (1920, 1080)
     --let (width, height) = (228, 128)
